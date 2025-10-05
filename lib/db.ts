@@ -1,199 +1,104 @@
-/* eslint-disable no-useless-constructor */
-/* eslint-disable constructor-super */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
+import type { VBConfigType } from "./utils";
+import { vbHelp } from "./utils";
 
-// set, get, remove, update, length, sync, request
+class VB {
+    config: VBConfigType
+    constructor(config: VBConfigType) {
+        this.config = config;
+        return this;
+    }
 
-export class CreateStore {
-   // eslint-disable-next-line no-useless-constructor
-   constructor() {}
+    /**@method set add new data to database. @param data */
+    set(data: any) {
+        const newArr = [];
+        const old = this.get();
+        newArr.push(data)
+        const nd = [...newArr, ...old]
 
-   // work 0.1.2
-   set(config) {
-      // config to set data
-      // db: 'database choice local or session', key: 'database key', data: 'data to store
+        if (vbHelp.isLocal(this.config.db)) {
+            VB._localSet(this.config.key, nd);
+        } else if (vbHelp.isSession(this.config.db)) {
+            VB._sessionSet(this.config.key, nd);
+        }
+    }
 
-      const { db, key, data } = config
-      // data can be number, string and object
-      const src = {
-         data,
-         key,
-         lastUpdated: new Date().toDateString(),
-         type: [typeof data]
-      }
+    /**@method get return all the datas in database. */
+    get() {
+        if (vbHelp.isLocal(this.config.db)) {
+            return VB._localGet(this.config.key);
+        } else if (vbHelp.isSession(this.config.db)) {
+            return VB._sessionGet(this.config.key);
+        }
+    }
 
-      if (db === 'session' || db === 'sessionStorage') {
-         CreateStore._sessionSet(key, JSON.stringify(src))
-         return true
-      } else if (db === 'local' || db === 'localStorage') {
-         CreateStore._localSet(key, JSON.stringify(src))
-         return true
-      }
-   }
+    /**@method getById return data by id. @param id  */
+    getById(id: number) {
+        if (vbHelp.isLocal(this.config.db)) {
+            const data = VB._localGet(this.config.key);
+            return data[id];
+        } else if (vbHelp.isSession(this.config.db)) {
+            const data = VB._sessionGet(this.config.key);
+            return data[id];
+        }
+    }
 
-   // works 0.1.2
-   get(query) {
-      // query to get data
-      // db: 'database choice local or session', key: 'database key'
-      const { db, key, option } = query
-      // const _option = "all" || "only"
+    /**@method update data in database with id. @param id  */
+    update(id: number, data: any) {
+        if (this.getById(id) === undefined) {
+            return undefined;
+        } else {
+            const old = this.get();
+            old[id] = data;
 
-      if (db === 'local' || db === 'localStorage') {
-         const res = localStorage.getItem(key)
-         const _res = JSON.parse(res)
-         const { data } = _res
-
-         if (CreateStore.getOPT(option)) {
-            return _res
-         }
-
-         return data
-      } else if (db === 'session' || db === 'sessionStorage') {
-         const res = sessionStorage.getItem(key)
-         const _res = JSON.parse(res)
-         const { data } = _res
-         if (CreateStore.getOPT(option)) {
-            return _res
-         }
-
-         return data
-      } else {
-         console.error(`Error: DB Error:${db} is not correct`)
-      }
-   }
-
-   static _sessionSet(key, data) {
-      sessionStorage.setItem(key, data)
-   }
-
-   static _localSet(key, data) {
-      localStorage.setItem(key, data)
-   }
-
-   static getOPT(option) {
-      if (option === 'all') {
-         return true
-      } else if (option === 'only') {
-         return false
-      } else if (option === undefined || option === null) {
-         return false
-      } else {
-         console.error(`Error: OPTION Error:${option}: all || only`)
-      }
-   }
-
-   // work 0.0.4
-   remove(query) {
-      // remove preconfig
-      // db: 'database choice local or session', key: 'database key'
-      const { db, key } = query
-      if (db === 'local' || db === 'localStorage') {
-         localStorage.removeItem(key)
-      } else if (db === 'session' || db === 'sessionStorage') {
-         sessionStorage.removeItem(key)
-      }
-   }
-
-   // work 0.0.4
-   sync(config) {
-      // sync config
-      // from: 'database to sync from, to: database to sync data to, key: 'database key', options: 'to delete the old data and set new key if neccessary'
-      const { from, to, key, options } = config
-      const { newKey, deleteOld } = options
-      // sync store session data to local storage
-      // ability to sync back and forth
-      const query = { db: from, key }
-      const data = this.get(query)
-
-      const _config = {
-         db: to,
-         key: newKey === '' || newKey === null ? key : newKey,
-         data
-      }
-      this.set(_config)
-      if (deleteOld) this.remove(query)
-      return true
-   }
-
-   // length of data work 0.0.4
-   length(db) {
-      if (db === 'local' || db === 'localStorage') {
-         return localStorage.length
-      } else if (db === 'session' || db === 'sessionStorage') {
-         return sessionStorage.length
-      }
-   }
-
-   request(config) {
-      // make request to get a data most get request, storage the data in db like caching
-      // preconfig
-      // db: 'database choice local or session', key: 'database key', url: 'api link to fetch data mostly get', options: 'fetch options if neccessary'
-      const { url, db, key, option } = config
-
-      fetch(url, option)
-         .then((res) => res.json())
-         .then((data) => {
-            const _config = {
-               db,
-               key,
-               data
+            if (vbHelp.isLocal(this.config.db)) {
+                VB._localSet(this.config.key, old);
+            } else if (vbHelp.isSession(this.config.db)) {
+                VB._sessionSet(this.config.key, old);
             }
+        }
+    }
 
-            this.set(_config)
-         })
-   }
+    /**@method remove data from database with id. @param id  */
+    remove(id: number) {
+        if (this.getById(id) === undefined) {
+            return undefined;
+        } else {
+            const others = this.get()?.filter((_o: any, i: number) => i !== id);
 
-   auth(auth) {
-      // store user session during there stay in a app
-      // return user hashed hash key and retrieve it
-      // generate new key
-      const newkey = generate()
-      const data = {
-         key: newkey,
-         auth
-      }
+            if (vbHelp.isLocal(this.config.db)) {
+                VB._localSet(this.config.key, others);
+            } else if (vbHelp.isSession(this.config.db)) {
+                VB._sessionSet(this.config.key, others);
+            }
+        }
+    }
 
-      const config = {
-         db: 'session',
-         key: 'OX',
-         data
-      }
+    /**@method clear all data in database. */
+    clear() {
+        if (vbHelp.isLocal(this.config.db)) {
+            localStorage.removeItem(this.config.key);
+        } else if (vbHelp.isSession(this.config.db)) {
+            sessionStorage.removeItem(this.config.key);
+        }
+    }
 
-      this.set(config)
-      return newkey
-   }
+    static _sessionSet(key: string, data: any) {
+        sessionStorage.setItem(key, JSON.stringify(data));
+    }
 
-   user(newkey) {
-      const query = {
-         db: 'session',
-         key: 'OX'
-      }
+    static _localSet(key: string, data: any) {
+        localStorage.setItem(key, JSON.stringify(data));
+    }
 
-      const data = this.get(query)
-      const { api, key } = data
-      if (key === newkey) return api
-      return null
-   }
+    static _sessionGet(key: string) {
+        const data = sessionStorage.getItem(key);
+        return JSON.parse(data as string);
+    }
 
-   alreadyExist(config) {
-      const { db, key } = config
-      if (db === 'local' || db === 'localStorage') {
-         const result = localStorage.getItem(key)
-         if (result === null) {
-            return false
-         } else {
-            return true
-         }
-      } else if (db === 'session' || db === 'sessionStorage') {
-         const result = sessionStorage.getItem(key)
-         if (result === null) {
-            return false
-         } else {
-            return true
-         }
-      } else {
-         console.error(`Error: DB Error:${db} is not correct`)
-      }
-   }
+    static _localGet(key: string) {
+        const data = localStorage.getItem(key);
+        return JSON.parse(data as string);
+    }
 }
+
+export default VB;

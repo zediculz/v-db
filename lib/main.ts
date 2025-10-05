@@ -1,9 +1,9 @@
 import type { VBConfigType } from "./utils.ts"
 import { vbHelp } from "./utils.ts"
-import VB from "./vb.ts"
+import VB from "./db.ts"
 
 class VBEngine {
-    config: VBConfigType | null
+    private config: VBConfigType | null
     constructor() {
         this.config = {
             db: "local",
@@ -27,7 +27,6 @@ class VBEngine {
         } else {
             return false
         }
-
         
     }
 

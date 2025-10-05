@@ -7,8 +7,8 @@ const db = vanillaDb({
     defaultData: [1]
 })
 
-db?.update(4, "Holak")
-console.log(db?.getById(4))
+
+db?.set(4)
 
 const d = vb.init({
     db: "session",
