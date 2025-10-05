@@ -6,6 +6,7 @@ VanillaDb is a lightweight browser database library thats built on top of localS
 ```bash
   npm install --save vanilla-db@latest
 ```
+
 Once the package is installed, you can import the library using import vanillaDb
 
 ```javascript

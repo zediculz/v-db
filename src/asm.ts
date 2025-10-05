@@ -10,7 +10,7 @@ function generate() {
    
    const alphaThree = ["QLp", "MGa", "zX", "BtJ", "iGj", "zB", "bZx", "QFu", "rWP", "NH", "oTH"]
 
-   const randomOne = Math.floor(Math.random() * 99999)
+   const randomOne = Math.floor(Math.random() * 999999999)
    const randomThree = Math.floor(Math.random() * 9999999)
 
    const sync = Math.floor(Math.random() * alphaOne.length)

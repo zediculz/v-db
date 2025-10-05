@@ -2,8 +2,9 @@
 /* eslint-disable constructor-super */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-import { generate } from './asm'
+
 // set, get, remove, update, length, sync, request
+
 export class CreateStore {
    // eslint-disable-next-line no-useless-constructor
    constructor() {}
